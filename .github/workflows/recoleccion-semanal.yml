@@ -1,0 +1,39 @@
+name: Recolección semanal (Bluesky)
+
+on:
+  schedule:
+    - cron: "23 10 * * 1"   # lunes 07:23 hora argentina: trae lunes a domingo anteriores
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: datos
+  cancel-in-progress: false
+
+jobs:
+  recolectar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e .
+
+      - name: Recolectar la semana anterior
+        run: python scripts/recolectar_bluesky.py --semana-anterior
+
+      - name: Guardar datos en el repo
+        if: always()
+        run: |
+          git config user.name "scheffan"
+          git config user.email "99194091+scheffan@users.noreply.github.com"
+          git add data/bluesky
+          if git diff --cached --quiet; then echo "Sin datos nuevos"; exit 0; fi
+          git commit -m "Datos Bluesky: semana $(date -u -d '7 days ago' +%G-W%V)"
+          git pull --rebase
+          git push

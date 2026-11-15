@@ -1,0 +1,41 @@
+# Términos de búsqueda en Bluesky, agrupados por tema.
+# Cada término se busca por separado (una consulta por término y por día).
+# Para frases exactas, usar comillas dobles dentro de la cadena.
+#
+# Volumen aproximado (posts en castellano por semana, nov 2026):
+#   milei >700 · kicillof ~60 · subte ~23 · anses/pami ~13 · jorge macri ~10 · aysa ~9
+#   servicios públicos (telecentro, edesur, edenor, metrogas) ~20 sumados
+
+idioma: es
+
+temas:
+  milei:
+    - milei
+  kicillof:
+    - kicillof
+  subte:
+    - subte
+  anses:
+    - anses
+  pami:
+    - pami
+  jorge_macri:
+    - '"jorge macri"'
+  aysa:
+    - aysa
+  servicios_publicos:
+    - telecentro
+    - edesur
+    - edenor
+    - metrogas
+  # Indicador de polarización: solo se reporta agregado por tema y semana,
+  # nunca a nivel de post ni de persona.
+  peyorativos:
+    - libervirgo
+    - libervirgos
+    - kuka
+    - kukas
+    - libertonto
+    - libertontos
+    - planero
+    - planeros
