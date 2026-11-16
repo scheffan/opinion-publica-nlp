@@ -1,0 +1,10 @@
+# Etiqueta legible y categoría de cada tema (alimenta la tabla dim_tema).
+milei:              {etiqueta: Milei,              categoria: politica}
+kicillof:           {etiqueta: Kicillof,           categoria: politica}
+jorge_macri:        {etiqueta: Jorge Macri,        categoria: politica}
+subte:              {etiqueta: Subte,              categoria: transporte}
+anses:              {etiqueta: ANSES,              categoria: estado}
+pami:               {etiqueta: PAMI,               categoria: estado}
+aysa:               {etiqueta: AySA,               categoria: servicios}
+servicios_publicos: {etiqueta: Servicios públicos, categoria: servicios}
+peyorativos:        {etiqueta: Peyorativos,        categoria: polarizacion}

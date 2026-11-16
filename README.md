@@ -1,30 +1,50 @@
 # opinion-publica-nlp — Termómetro de descontento
 
-> 🚧 En construcción. Etapa actual: recolección de datos.
+> 🚧 En construcción. Etapa actual: análisis de texto y base de datos de Bluesky.
 
 De qué se queja la gente, dónde y con qué tono, a partir de fuentes públicas, legales y gratuitas.
+
+**Stack:** Python · pandas · pysentimiento (NLP en castellano) · PostgreSQL (Neon) · SQL · GitHub Actions · Grafana
 
 ## Fuentes
 
 | Fuente | Qué aporta | Estado |
 |---|---|---|
-| Bluesky (API pública de búsqueda) | Texto en castellano por tema: sentimiento, emociones y motivo de la queja | Recolección semanal |
-| Defensa del Consumidor (Nación) | Reclamos por empresa | Pendiente |
-| Reclamos 147 / BA Colaborativa (CABA) | Reclamos por comuna y tema | Pendiente |
+| Bluesky (API pública de búsqueda) | Texto libre: sentimiento, emociones y discurso de odio por tema | Recolección semanal desde ene-2025 · análisis en curso |
+| Defensa del Consumidor (Nación) | Denuncias por empresa y rubro | Pendiente |
+| Reclamos 147 / BA Colaborativa (CABA) | Reclamos por comuna y tipo | Pendiente |
 
-## Recolección de Bluesky
+## Cómo funciona
 
-- Los términos están en [`config/terminos.yaml`](config/terminos.yaml), agrupados por tema.
-- Se hace una búsqueda por término y por día (hora argentina). Si una ventana devuelve el máximo de 100 posts, se parte en mitades hasta llegar a ventanas de una hora; si aun así viene llena, queda marcada como `truncada` en el registro.
-- Los datos quedan en `data/bluesky/AAAA-Www.parquet` (una semana ISO por archivo) y el detalle de cada consulta en `data/bluesky/registro/`.
-- **GitHub Actions:** `recoleccion-semanal.yml` corre los lunes y trae la semana anterior; `historico.yml` se lanza a mano con un rango de fechas.
+```
+API de Bluesky ──► Parquet crudo ──► análisis de texto ──► PostgreSQL ──► Grafana
+   (lunes)          (en el repo)      (pysentimiento)      (modelo estrella + vistas)
+```
+
+Todo corre solo en GitHub Actions: recolección los lunes, análisis y carga a continuación,
+y en cada push tests de código, tests de datos y una carga completa en un PostgreSQL de prueba.
+
+## Documentación
+
+| Documento | Contenido |
+|---|---|
+| [Arquitectura](docs/arquitectura.md) | Capas, flujo y automatización |
+| [ETL paso a paso](docs/etl.md) | Extracción, limpieza, análisis y carga |
+| [Modelo de datos](docs/modelo-de-datos.md) | Diagrama de tablas, diccionario de datos y vistas |
+| [Metodología](docs/metodologia.md) | Sesgos, métricas e intervalos de confianza |
+| [Calidad de datos](docs/calidad-de-datos.md) | Tests y controles |
+| [Decisiones](docs/decisiones.md) | Qué se eligió, qué se descartó y por qué |
+
+## Uso rápido
 
 ```bash
 pip install -e ".[dev]"
 python scripts/recolectar_bluesky.py --semana-anterior
-python scripts/recolectar_bluesky.py --desde 2025-01-01 --hasta 2025-03-31
+DATABASE_URL=postgresql://... python scripts/cargar_bd.py
 pytest
 ```
+
+Para el análisis de texto ver [docs/etl.md](docs/etl.md#cómo-correr-todo-en-local).
 
 ## Privacidad
 
@@ -34,4 +54,5 @@ pytest
 
 ## Alcance
 
-Bluesky no representa a toda la población argentina: es un complemento, no una encuesta. El proyecto no mide intención de voto (Ley 26.215).
+Bluesky no representa a toda la población argentina: es un complemento, no una encuesta.
+El proyecto no mide intención de voto (Ley 26.215). Más detalle en [Metodología](docs/metodologia.md).

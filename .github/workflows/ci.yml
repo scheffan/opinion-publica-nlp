@@ -2,12 +2,11 @@ name: CI
 
 on:
   push:
-    paths-ignore: ["data/**"]
   pull_request:
-    paths-ignore: ["data/**"]
 
 jobs:
   tests:
+    name: Tests de código y de datos
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -17,3 +16,30 @@ jobs:
           cache: pip
       - run: pip install -e ".[dev]"
       - run: pytest -v
+
+  carga-bd:
+    name: Carga completa en un PostgreSQL de prueba
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: prueba
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://postgres:prueba@localhost:5432/postgres
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e .
+      - name: Primera carga
+        run: python scripts/cargar_bd.py
+      - name: Segunda carga (tiene que dar el mismo resultado)
+        run: |
+          python scripts/cargar_bd.py
+          psql "$DATABASE_URL" -c "SELECT estado, filas FROM opinion.etl_corrida ORDER BY corrida_id"

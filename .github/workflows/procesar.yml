@@ -1,0 +1,92 @@
+name: Análisis de texto y carga a la base
+
+# Corre solo después de cada recolección semanal, o a mano desde Actions.
+# 1) analiza con pysentimiento los posts que todavía no tienen análisis
+# 2) guarda el resultado en data/procesado/analisis/
+# 3) carga todo en PostgreSQL (Neon) y corre los controles de calidad
+
+on:
+  workflow_run:
+    workflows: ["Recolección semanal (Bluesky)"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      minutos:
+        description: "Minutos máximos de análisis (el histórico se completa en varias corridas)"
+        default: "300"
+      solo_carga:
+        description: "Saltear el análisis y solo cargar la base"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: datos
+  cancel-in-progress: false
+
+jobs:
+  analizar:
+    if: >-
+      (github.event_name == 'workflow_dispatch' && !inputs.solo_carga) ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Instalar dependencias (PyTorch solo CPU)
+        run: |
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -e ".[nlp]"
+      - name: Caché de los modelos de Hugging Face
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: hf-pysentimiento-0.7.3
+
+      - name: Analizar posts pendientes
+        run: python scripts/analizar_sentimiento.py --minutos "${{ inputs.minutos || '300' }}"
+
+      - name: Guardar análisis en el repo
+        if: always()
+        run: |
+          git config user.name "scheffan"
+          git config user.email "99194091+scheffan@users.noreply.github.com"
+          git add data/procesado
+          if git diff --cached --quiet; then echo "Sin análisis nuevos"; exit 0; fi
+          git commit -m "Análisis de texto: $(date -u +%F)"
+          git pull --rebase
+          git push
+
+  cargar:
+    needs: analizar
+    if: >-
+      always() && (needs.analizar.result == 'success' || needs.analizar.result == 'skipped') &&
+      (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e .
+      - name: Cargar en PostgreSQL y correr controles
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "::warning::Falta el secreto DATABASE_URL: no se carga la base"
+            exit 0
+          fi
+          python scripts/cargar_bd.py
