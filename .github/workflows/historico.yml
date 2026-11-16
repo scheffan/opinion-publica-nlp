@@ -41,8 +41,16 @@ jobs:
         run: |
           git config user.name "scheffan"
           git config user.email "99194091+scheffan@users.noreply.github.com"
+          # Fusiona con lo último de main en vez de hacer rebase de archivos binarios
+          mkdir -p /tmp/nuevos/registro
+          git add data/bluesky
+          for f in $(git diff --cached --name-only -- data/bluesky); do
+            cp "$f" "/tmp/nuevos/${f#data/bluesky/}"
+          done
+          git fetch origin main
+          git reset --hard origin/main
+          python scripts/fusionar_datos.py /tmp/nuevos data/bluesky
           git add data/bluesky
           if git diff --cached --quiet; then echo "Sin datos nuevos"; exit 0; fi
           git commit -m "Datos Bluesky: histórico ${{ inputs.desde }} a ${{ inputs.hasta }}"
-          git pull --rebase
           git push
