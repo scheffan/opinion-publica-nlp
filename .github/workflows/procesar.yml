@@ -59,6 +59,7 @@ jobs:
         run: |
           git config user.name "scheffan"
           git config user.email "99194091+scheffan@users.noreply.github.com"
+          mkdir -p data/procesado
           git add data/procesado
           if git diff --cached --quiet; then echo "Sin análisis nuevos"; exit 0; fi
           git commit -m "Análisis de texto: $(date -u +%F)"

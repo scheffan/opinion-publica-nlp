@@ -86,10 +86,11 @@ def analizar(
 
 def cargar_modelos():  # pragma: no cover - requiere descargar modelos
     """Crea los tres analizadores reales de pysentimiento en castellano."""
-    import pysentimiento
+    from importlib.metadata import version
+
     from pysentimiento import create_analyzer
 
-    modelo = f"pysentimiento-{pysentimiento.__version__}"
+    modelo = f"pysentimiento-{version('pysentimiento')}"
     return (
         create_analyzer(task="sentiment", lang="es"),
         create_analyzer(task="emotion", lang="es"),
