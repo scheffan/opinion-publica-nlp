@@ -34,6 +34,6 @@ jobs:
           git config user.email "99194091+scheffan@users.noreply.github.com"
           git add data/bluesky
           if git diff --cached --quiet; then echo "Sin datos nuevos"; exit 0; fi
-          git commit -m "Datos Bluesky: semana $(date -u -d '7 days ago' +%G-W%V)"
+          git commit -m "Datos Bluesky: semana $(TZ=America/Argentina/Buenos_Aires date -d '7 days ago' +%G-W%V)"
           git pull --rebase
           git push
