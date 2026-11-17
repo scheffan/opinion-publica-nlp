@@ -1,0 +1,41 @@
+name: Comparar con modelo de lenguaje (Groq)
+
+# Se lanza a mano. Clasifica con Groq los posts etiquetados a mano y
+# actualiza docs/validacion.md con la comparación entre los dos modelos.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: datos
+  cancel-in-progress: false
+
+jobs:
+  comparar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e .
+      - name: Clasificar con Groq
+        run: python scripts/comparar_llm.py
+      - name: Actualizar la validación
+        run: python scripts/evaluar_modelo.py
+      - name: Guardar en el repo
+        run: |
+          git config user.name "scheffan"
+          git config user.email "99194091+scheffan@users.noreply.github.com"
+          git add data/etiquetado docs/validacion.md
+          if git diff --cached --quiet; then echo "Sin cambios"; exit 0; fi
+          git commit -m "Comparación con modelo de lenguaje en la validación"
+          git pull --rebase
+          git push

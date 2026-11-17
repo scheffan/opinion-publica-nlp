@@ -32,10 +32,48 @@ def tabla_md(df: pd.DataFrame, decimales: int = 2) -> str:
     return "\n".join(filas)
 
 
+def fila_comparacion(nombre: str, real: pd.Series, predicho: pd.Series) -> dict:
+    r = resumen(real, predicho)
+    fila = {"modelo": nombre, "exactitud": r["exactitud"]}
+    fila.update({f"F1 {c}": r["por_clase"].loc[c, "f1"] for c in CLASES})
+    fila["F1 macro"] = r["f1_macro"]
+    return fila
+
+
+def seccion_llm(datos: pd.DataFrame, ruta: Path) -> str:
+    """Compara pysentimiento con el modelo de lenguaje sobre los mismos posts."""
+    if not ruta.exists():
+        return ""
+    llm = pd.read_csv(ruta).rename(columns={"sentimiento": "llm_sent", "modelo": "llm_modelo"})
+    comun = datos.merge(llm, on="post_id").dropna(subset=["llm_sent"])
+    tabla = pd.DataFrame([
+        fila_comparacion("pysentimiento", comun.sentimiento, comun.modelo_sent),
+        fila_comparacion(f"LLM ({comun.llm_modelo.mode().iloc[0]})", comun.sentimiento, comun.llm_sent),
+    ]).set_index("modelo")
+    r = resumen(comun.sentimiento, comun.llm_sent)
+    reparto = comun.llm_sent.value_counts(normalize=True).reindex(CLASES).fillna(0.0)
+    return f"""## Comparación con un modelo de lenguaje
+
+Los mismos {len(comun)} posts, clasificados por un modelo de lenguaje de Groq con los mismos
+criterios que se usaron para etiquetar a mano (ver [`src/opinion_publica/llm.py`](../src/opinion_publica/llm.py)).
+
+{tabla_md(tabla)}
+
+Matriz de confusión del modelo de lenguaje (filas: etiqueta a mano, columnas: modelo):
+
+{tabla_md(r['matriz'], 0)}
+
+Reparto que predice el modelo de lenguaje: negativo {reparto['negativo']:.0%},
+neutro {reparto['neutro']:.0%}, positivo {reparto['positivo']:.0%}.
+
+"""
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--etiquetas", type=Path, default=Path("data/etiquetado/etiquetas.csv"))
     parser.add_argument("--analisis", type=Path, default=Path("data/procesado/analisis"))
+    parser.add_argument("--llm", type=Path, default=Path("data/etiquetado/predicciones_llm.csv"))
     parser.add_argument("--salida", type=Path, default=Path("docs/validacion.md"))
     args = parser.parse_args()
 
@@ -86,6 +124,7 @@ Filas: etiqueta a mano. Columnas: predicción del modelo.
 
 {tabla_md(por_tema)}
 
+{seccion_llm(datos, args.llm)}
 _Generado el {date.today().isoformat()} con `python scripts/evaluar_modelo.py`._
 """
     args.salida.write_text(texto, encoding="utf-8")
