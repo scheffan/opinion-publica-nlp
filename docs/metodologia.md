@@ -73,5 +73,12 @@ Se etiquetaron a mano 198 posts estratificados por tema, sin ver la predicción 
 - Kicillof tiene la peor exactitud (50 %): buena parte de sus posts son propaganda positiva que el
   modelo lee como neutra.
 
+**Segunda opinión con un modelo de lenguaje.** Sobre los mismos posts, `gpt-oss-120b` (Groq) llegó a
+79 % de exactitud y F1 macro de 0,60, con un reparto (67 % negativo, 27 % neutro, 5 % positivo) muy
+cercano al de la etiqueta a mano. Sus instrucciones se escribieron con los mismos criterios del
+etiquetado, algunos precisados al ver estos posts, así que su ventaja real probablemente sea algo
+menor; habría que confirmarla con una muestra nueva. El tablero sigue usando pysentimiento para que
+todo el histórico se mida con la misma herramienta (ver [decisiones](decisiones.md), punto 13).
+
 Limitaciones de la validación: una sola persona etiquetó, y con 15 positivos los números de esa clase
 tienen mucha incertidumbre.
