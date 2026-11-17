@@ -15,7 +15,7 @@ El proyecto sigue un esquema de tres capas, común en equipos de datos:
   (se importa en Grafana con *Dashboards → New → Import*).
 - Grafana se conecta a Neon con el usuario **`grafana_lector`**, que solo puede leer las vistas del tablero
   ([`sql/03_permisos.sql`](../sql/03_permisos.sql)): no ve las tablas ni puede escribir. Tiene un límite de
-  20 conexiones y 30 segundos por consulta, para que el link público no pueda sobrecargar la base.
+  40 conexiones (alcanza para los tres tableros abiertos a la vez) y 30 segundos por consulta, para que el link público no pueda sobrecargar la base.
 - El usuario se crea por SQL en cada carga (`cargar_bd.py`) con la contraseña del secreto `GRAFANA_DB_PASSWORD`.
   No se crea desde la consola de Neon porque ahí recibe permisos de administrador.
 

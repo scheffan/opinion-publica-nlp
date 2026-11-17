@@ -107,7 +107,7 @@ def configurar_lector(cur, password: str, rol: str = "grafana_lector") -> None:
 
     cur.execute("SELECT 1 FROM pg_roles WHERE rolname = %s", (rol,))
     verbo = "ALTER" if cur.fetchone() else "CREATE"
-    cur.execute(sql.SQL("{} ROLE {} LOGIN PASSWORD {} CONNECTION LIMIT 20").format(
+    cur.execute(sql.SQL("{} ROLE {} LOGIN PASSWORD {} CONNECTION LIMIT 40").format(
         sql.SQL(verbo), sql.Identifier(rol), sql.Literal(password)))
     cur.execute(sql.SQL("ALTER ROLE {} SET statement_timeout = '30s'").format(sql.Identifier(rol)))
     cur.execute(sql.SQL("ALTER ROLE {} SET search_path = opinion").format(sql.Identifier(rol)))
