@@ -49,7 +49,7 @@ def panel(id_: int, tipo: str, titulo: str, x: int, y: int, w: int, h: int, sql:
 
 def stat(id_: int, titulo: str, x: int, sql: str, unidad: str = "none", campo: str = "", desc: str = "") -> dict:
     return panel(
-        id_, "stat", titulo, x, 5, 6, 4, sql, descripcion=desc,
+        id_, "stat", titulo, x, 7, 6, 4, sql, descripcion=desc,
         fieldConfig={"defaults": {"unit": unidad, "decimals": 1 if unidad == "percent" else 0,
                                   "color": {"mode": "fixed", "fixedColor": "text"}}, "overrides": []},
         options={"reduceOptions": {"calcs": ["lastNotNull"], "fields": campo, "values": False},
@@ -85,9 +85,9 @@ Intervalos de confianza: método de Wilson al 95 %. Detalle en [docs/]({REPO}/tr
 
 def tablero() -> dict:
     paneles = [
-        panel(1, "text", "", 0, 0, 24, 5, options={"mode": "markdown", "content": ENCABEZADO.strip()}),
+        panel(1, "text", "", 0, 0, 24, 7, options={"mode": "markdown", "content": ENCABEZADO.strip()}),
 
-        stat(2, "Posts analizados", 0, "SELECT posts FROM v_bsky_resumen"),
+        stat(2, "Posts analizados", 0, "SELECT posts FROM v_bsky_resumen", unidad="locale"),
         stat(3, "% negativo · último mes completo", 6,
              "SELECT round(100.0 * sum(negativos) / nullif(sum(posts_utiles), 0), 1) AS valor "
              "FROM v_bsky_mensual_conteos WHERE mes = (SELECT max(mes) FROM v_bsky_mensual_conteos)",
@@ -100,7 +100,7 @@ def tablero() -> dict:
              "AS actualizado FROM v_bsky_resumen", campo="/^actualizado$/",
              desc="Última carga exitosa a la base (hora argentina)."),
 
-        panel(6, "timeseries", "% negativo por mes y tema", 0, 9, 16, 10,
+        panel(6, "timeseries", "% negativo por mes y tema", 0, 11, 16, 10,
               "SELECT mes::timestamp AS time, etiqueta AS metric, "
               "CASE WHEN posts_utiles >= 30 THEN round(100.0 * negativos / posts_utiles, 1) END AS value "
               "FROM v_bsky_mensual_conteos WHERE $__timeFilter(mes::timestamp) ORDER BY 1",
@@ -113,7 +113,7 @@ def tablero() -> dict:
               options={"legend": {"displayMode": "list", "placement": "bottom"},
                        "tooltip": {"mode": "multi", "sort": "desc"}}),
 
-        panel(7, "bargauge", "Ranking · % negativo en los últimos 3 meses", 16, 9, 8, 10,
+        panel(7, "bargauge", "Ranking · % negativo en los últimos 3 meses", 16, 11, 8, 10,
               "SELECT etiqueta, round(100.0 * sum(negativos) / nullif(sum(posts_utiles), 0), 1) AS \"% negativo\" "
               f"FROM v_bsky_mensual_conteos WHERE {ULTIMOS_3_MESES} GROUP BY etiqueta ORDER BY 2 DESC",
               fieldConfig={"defaults": {"unit": "percent", "min": 0, "max": 100, "decimals": 1,
@@ -121,7 +121,7 @@ def tablero() -> dict:
               options={"orientation": "horizontal", "displayMode": "gradient", "showUnfilled": True,
                        "reduceOptions": {"calcs": [], "fields": "", "values": True}}),
 
-        panel(8, "timeseries", "Milei · % negativo por semana (con margen de error)", 0, 19, 12, 9,
+        panel(8, "timeseries", "Milei · % negativo por semana (con margen de error)", 0, 21, 12, 9,
               "SELECT inicio_semana::timestamp AS time, pct_negativo AS \"% negativo\", "
               "pct_negativo_ic_inf AS \"IC inferior\", pct_negativo_ic_sup AS \"IC superior\" "
               "FROM v_bsky_semanal_tema WHERE tema = 'milei' AND $__timeFilter(inicio_semana::timestamp) ORDER BY 1",
@@ -141,11 +141,12 @@ def tablero() -> dict:
                            ]},
               options={"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}}),
 
-        panel(9, "timeseries", "Atención · reparto del volumen de posts entre temas", 12, 19, 12, 9,
+        panel(9, "timeseries", "Atención · reparto del volumen entre temas (sin Milei)", 12, 21, 12, 9,
               "SELECT mes::timestamp AS time, etiqueta AS metric, posts AS value "
-              "FROM v_bsky_mensual_conteos WHERE $__timeFilter(mes::timestamp) ORDER BY 1",
+              "FROM v_bsky_mensual_conteos WHERE tema <> 'milei' AND $__timeFilter(mes::timestamp) ORDER BY 1",
               formato="time_series",
-              descripcion="Qué parte de la conversación se lleva cada tema por mes. Se usa el porcentaje porque "
+              descripcion="Qué parte de la conversación se lleva cada tema por mes, sin contar a Milei, que solo "
+                          "ocupa entre el 80 y el 90 % del volumen y taparía al resto. Se usa el porcentaje porque "
                           "la actividad total de Bluesky bajó en 2026.",
               fieldConfig={"defaults": {"unit": "short",
                                         "custom": {"fillOpacity": 70, "lineWidth": 1,
@@ -154,7 +155,7 @@ def tablero() -> dict:
               options={"legend": {"displayMode": "list", "placement": "bottom"},
                        "tooltip": {"mode": "multi", "sort": "desc"}}),
 
-        panel(10, "barchart", "Emociones por tema · últimos 3 meses", 0, 28, 12, 10,
+        panel(10, "barchart", "Emociones por tema · últimos 3 meses", 0, 30, 12, 10,
               "SELECT etiqueta AS \"Tema\", "
               + ", ".join(f"round(100.0 * coalesce(sum(posts) FILTER (WHERE emocion = '{e}'), 0) / sum(posts), 1) AS \"{n}\""
                           for e, n in [("enojo", "Enojo"), ("tristeza", "Tristeza"), ("miedo", "Miedo"),
@@ -163,7 +164,7 @@ def tablero() -> dict:
               + " FROM v_bsky_emociones_mensual "
               "WHERE mes >= (SELECT max(mes) FROM v_bsky_emociones_mensual) - interval '2 months' "
               "GROUP BY etiqueta ORDER BY 2 DESC",
-              descripcion="Emoción principal de cada post según el modelo, sobre los posts con texto analizable.",
+              descripcion="Emoción principal de cada post según el modelo, sobre los posts con texto analizable. 'Otra' significa que el modelo no encontró una emoción clara (por ejemplo, un post informativo).",
               fieldConfig={"defaults": {"unit": "percent", "custom": {"fillOpacity": 85, "lineWidth": 0}},
                            "overrides": [
                                {"matcher": {"id": "byName", "options": n},
@@ -175,7 +176,7 @@ def tablero() -> dict:
                        "showValue": "never", "legend": {"displayMode": "list", "placement": "bottom"},
                        "tooltip": {"mode": "multi"}}),
 
-        panel(11, "bargauge", "Discurso de odio · % de posts en los últimos 12 meses", 12, 28, 12, 10,
+        panel(11, "bargauge", "Discurso de odio · % de posts en los últimos 12 meses", 12, 30, 12, 10,
               "SELECT etiqueta, round(100.0 * sum(con_odio) / nullif(sum(posts_utiles), 0), 1) AS \"% con odio\" "
               f"FROM v_bsky_mensual_conteos WHERE {ULTIMOS_12_MESES} GROUP BY etiqueta ORDER BY 2 DESC",
               descripcion="Posts que el modelo marca como discurso de odio. El tema 'Peyorativos' se arma con "
@@ -185,7 +186,7 @@ def tablero() -> dict:
               options={"orientation": "horizontal", "displayMode": "basic", "showUnfilled": True,
                        "reduceOptions": {"calcs": [], "fields": "", "values": True}}),
 
-        panel(12, "table", "Cobertura de la recolección · últimas 12 semanas", 0, 38, 12, 9,
+        panel(12, "table", "Cobertura de la recolección · últimas 12 semanas", 0, 40, 12, 9,
               "SELECT semana_iso AS \"Semana\", dias_con_datos AS \"Días con datos\", "
               "consultas_truncadas AS \"Consultas truncadas\", posts_reportados_api AS \"Posts devueltos por la API\" "
               "FROM v_bsky_cobertura ORDER BY semana_iso DESC LIMIT 12",
@@ -193,7 +194,7 @@ def tablero() -> dict:
               fieldConfig={"defaults": {"custom": {"align": "center"}}, "overrides": []},
               options={"showHeader": True}),
 
-        panel(13, "text", "", 12, 38, 12, 9, options={"mode": "markdown", "content": PIE.strip()}),
+        panel(13, "text", "", 12, 40, 12, 9, options={"mode": "markdown", "content": PIE.strip()}),
     ]
     return {
         "__inputs": [{"name": "DS_OPINION", "label": "PostgreSQL (Neon) · opinion", "type": "datasource",
