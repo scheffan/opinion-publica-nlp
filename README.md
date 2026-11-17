@@ -16,7 +16,7 @@ Sirve, por ejemplo, para que un municipio vea qué servicios generan más enojo,
 
 **Hallazgos de la primera fuente (Bluesky, ene-2025 a nov-2026, 90.617 posts):**
 - Dos de cada tres posts sobre estos temas son negativos; la emoción dominante es el enojo en todos.
-- En los últimos tres meses, los temas con más negatividad son AySA (70 %) y el subte (67 %), por encima de Milei (66 %).
+- En los últimos tres meses, sin contar el indicador de insultos partidarios, los temas con más negatividad son AySA (70 %) y el subte (67 %), por encima de Milei (66 %).
 - Milei concentra entre el 80 y el 90 % de la conversación; el resto de los temas se lee mejor por mes.
 - El modelo de sentimiento se validó contra 198 posts etiquetados a mano (71 % de acierto) y se comparó con un modelo de lenguaje (79 %).
 
