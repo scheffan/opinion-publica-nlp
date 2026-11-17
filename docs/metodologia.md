@@ -54,7 +54,24 @@ atención aunque la cantidad absoluta baje.
 3. Los períodos con poca muestra se ven distintos.
 4. La precisión del modelo, medida contra la muestra etiquetada a mano, figura en el tablero.
 
-## Validación del modelo (pendiente)
-Se etiquetan a mano unos 200 posts, estratificados por tema, sin ver la predicción del
-modelo. Se reportan F1 por clase y la matriz de confusión. Si el modelo confunde
-sistemáticamente alguna clase (por ejemplo, ironía leída como positiva), se aclara en el tablero.
+## Validación del modelo
+Se etiquetaron a mano 198 posts estratificados por tema, sin ver la predicción del modelo
+(16 se saltearon por no entenderse o no ser de Argentina). Resultado completo en
+[validacion.md](validacion.md).
+
+| Clase | F1 | Lectura |
+|---|---|---|
+| Negativo | 0,83 | Confiable: cuando el modelo dice negativo, acierta en el 88 % de los casos |
+| Neutro | 0,58 | Lo sobreestima: muchos negativos y positivos quedan como neutros |
+| Positivo | 0,10 | No sirve: de 15 positivos reales encontró 1 |
+
+**Qué se muestra en el tablero a partir de esto:**
+- El **% negativo** es la métrica principal. En la muestra, el modelo da 62 % y la etiqueta a mano 68 %:
+  subestima un poco lo negativo, y el tablero lo aclara.
+- El **% positivo no se muestra** como métrica: el modelo detecta muy pocos (3 % contra 8 % real).
+- La ironía, marcada en 41 posts, no empeora mucho al modelo (68 % de acierto contra 71 % general).
+- Kicillof tiene la peor exactitud (50 %): buena parte de sus posts son propaganda positiva que el
+  modelo lee como neutra.
+
+Limitaciones de la validación: una sola persona etiquetó, y con 15 positivos los números de esa clase
+tienen mucha incertidumbre.

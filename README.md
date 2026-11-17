@@ -33,6 +33,7 @@ y en cada push tests de código, tests de datos y una carga completa en un Postg
 | [Modelo de datos](docs/modelo-de-datos.md) | Diagrama de tablas, diccionario de datos y vistas |
 | [Metodología](docs/metodologia.md) | Sesgos, métricas e intervalos de confianza |
 | [Calidad de datos](docs/calidad-de-datos.md) | Tests y controles |
+| [Validación del modelo](docs/validacion.md) | Comparación con 198 posts etiquetados a mano |
 | [Decisiones](docs/decisiones.md) | Qué se eligió, qué se descartó y por qué |
 
 ## Uso rápido
