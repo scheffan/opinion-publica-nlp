@@ -8,6 +8,17 @@ El proyecto sigue un esquema de tres capas, común en equipos de datos:
 | **Procesada** | `data/procesado/` (Parquet, en el repo) | Análisis de texto de cada post | La capa cruda |
 | **Analítica** | PostgreSQL en Neon, esquema `opinion` | Modelo estrella + vistas con las métricas | Las dos capas anteriores |
 
+## Tablero
+
+- Un tablero de Grafana por fuente. El de Bluesky está definido como código en
+  [`grafana/generar_bluesky.py`](../grafana/generar_bluesky.py), que escribe `grafana/bluesky.json`
+  (se importa en Grafana con *Dashboards → New → Import*).
+- Grafana se conecta a Neon con el usuario **`grafana_lector`**, que solo puede leer las vistas del tablero
+  ([`sql/03_permisos.sql`](../sql/03_permisos.sql)): no ve las tablas ni puede escribir. Tiene un límite de
+  5 conexiones y 30 segundos por consulta, para que el link público no pueda sobrecargar la base.
+- El usuario se crea por SQL en cada carga (`cargar_bd.py`) con la contraseña del secreto `GRAFANA_DB_PASSWORD`.
+  No se crea desde la consola de Neon porque ahí recibe permisos de administrador.
+
 La base de datos no es la fuente de verdad: si se borra, se reconstruye entera con
 `python scripts/cargar_bd.py`. Eso permite cambiar el esquema o las métricas sin miedo a perder datos.
 

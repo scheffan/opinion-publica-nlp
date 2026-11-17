@@ -95,6 +95,24 @@ def upsert(cur, df: pd.DataFrame, tabla: str, columnas: list[str], clave: list[s
     return filas
 
 
+def configurar_lector(cur, password: str, rol: str = "grafana_lector") -> None:
+    """Crea (o actualiza) el usuario de solo lectura para Grafana.
+
+    Se crea por SQL y no desde la consola de Neon porque los roles creados en la
+    consola reciben permisos de administrador; este solo puede leer las vistas
+    que le da sql/03_permisos.sql. Límite de conexiones y de tiempo por consulta
+    para que un tablero público no pueda sobrecargar la base.
+    """
+    from psycopg import sql
+
+    cur.execute("SELECT 1 FROM pg_roles WHERE rolname = %s", (rol,))
+    verbo = "ALTER" if cur.fetchone() else "CREATE"
+    cur.execute(sql.SQL("{} ROLE {} LOGIN PASSWORD {} CONNECTION LIMIT 5").format(
+        sql.SQL(verbo), sql.Identifier(rol), sql.Literal(password)))
+    cur.execute(sql.SQL("ALTER ROLE {} SET statement_timeout = '30s'").format(sql.Identifier(rol)))
+    cur.execute(sql.SQL("ALTER ROLE {} SET search_path = opinion").format(sql.Identifier(rol)))
+
+
 def aplicar_sql(cur, carpeta: Path = RAIZ / "sql") -> None:
     for archivo in sorted(carpeta.glob("*.sql")):
         cur.execute(archivo.read_text(encoding="utf-8"))

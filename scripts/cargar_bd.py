@@ -34,6 +34,8 @@ def main() -> int:
 
     with psycopg.connect(url, autocommit=True) as conn:
         with conn.cursor() as cur:
+            if os.environ.get("GRAFANA_DB_PASSWORD"):
+                carga.configurar_lector(cur, os.environ["GRAFANA_DB_PASSWORD"])
             carga.aplicar_sql(cur)
             cur.execute(
                 "INSERT INTO opinion.etl_corrida (fuente, paso, inicio, estado, origen) "

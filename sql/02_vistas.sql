@@ -103,3 +103,40 @@ SELECT a.mes, a.tema, t.etiqueta, t.categoria, a.posts, a.posts_utiles,
        round(100.0 * a.con_odio / NULLIF(a.posts_utiles, 0), 1)            AS pct_odio,
        a.posts_utiles < 30                                                 AS poca_muestra
 FROM agregado a JOIN dim_tema t USING (tema);
+
+-- ─── Vistas extra para el tablero ──────────────────────────────────────────
+
+-- Conteos por mes y tema (además de los porcentajes de v_bsky_mensual_tema),
+-- para poder sumar varios meses sin promediar porcentajes.
+CREATE OR REPLACE VIEW v_bsky_mensual_conteos AS
+SELECT date_trunc('month', p.fecha)::date AS mes, pt.tema, t.etiqueta,
+       count(*)                                           AS posts,
+       count(*) FILTER (WHERE a.texto_util)               AS posts_utiles,
+       count(*) FILTER (WHERE a.sentimiento = 'negativo') AS negativos,
+       count(*) FILTER (WHERE a.odio)                     AS con_odio
+FROM bsky_post p
+JOIN bsky_post_tema pt USING (post_id)
+JOIN dim_tema t USING (tema)
+LEFT JOIN bsky_analisis a USING (post_id)
+WHERE p.fecha < date_trunc('month', now() AT TIME ZONE 'America/Argentina/Buenos_Aires')::date
+GROUP BY 1, 2, 3;
+
+-- Emociones por mes y tema (sobre posts útiles).
+CREATE OR REPLACE VIEW v_bsky_emociones_mensual AS
+SELECT date_trunc('month', p.fecha)::date AS mes, pt.tema, t.etiqueta, a.emocion, count(*) AS posts
+FROM bsky_post p
+JOIN bsky_post_tema pt USING (post_id)
+JOIN dim_tema t USING (tema)
+JOIN bsky_analisis a USING (post_id)
+WHERE a.texto_util
+  AND p.fecha < date_trunc('month', now() AT TIME ZONE 'America/Argentina/Buenos_Aires')::date
+GROUP BY 1, 2, 3, 4;
+
+-- Números generales y estado del ETL, para el encabezado del tablero.
+CREATE OR REPLACE VIEW v_bsky_resumen AS
+SELECT (SELECT count(*) FROM bsky_post)                               AS posts,
+       (SELECT count(*) FROM bsky_analisis WHERE texto_util)          AS posts_utiles,
+       (SELECT min(fecha) FROM bsky_post)                             AS desde,
+       (SELECT max(fecha) FROM bsky_post)                             AS hasta,
+       (SELECT max(fin) FROM etl_corrida WHERE estado = 'ok')         AS ultima_carga,
+       (SELECT count(*) FROM bsky_consulta WHERE truncada)            AS consultas_truncadas;

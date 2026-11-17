@@ -75,6 +75,7 @@ jobs:
     timeout-minutes: 30
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      GRAFANA_DB_PASSWORD: ${{ secrets.GRAFANA_DB_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
         with:
