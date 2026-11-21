@@ -282,7 +282,7 @@ details.table th:first-child,details.table td:first-child{text-align:left}
   const el = (tag, attrs = {}, parent) => { const n = document.createElementNS(NS, tag); for (const k in attrs) n.setAttribute(k, attrs[k]); if (parent) parent.appendChild(n); return n; };
   const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
   let lang = 'es';
-  try { const s = localStorage.getItem('lang'); if (s === 'en' || s === 'es') lang = s; else if (!navigator.language.startsWith('es')) lang = 'en'; } catch (e) {}
+  try { const q = new URLSearchParams(location.search).get('lang'); const s = (q === 'en' || q === 'es') ? q : localStorage.getItem('lang'); if (s === 'en' || s === 'es') lang = s; else if (!navigator.language.startsWith('es')) lang = 'en'; } catch (e) {}
   const L = (es, en) => lang === 'es' ? es : en;
   const cls = { negativo: ['negativo', 'negative'], neutro: ['neutro', 'neutral'], positivo: ['positivo', 'positive'] };
   const cn = c => L(...cls[c]);
