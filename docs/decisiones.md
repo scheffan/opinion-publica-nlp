@@ -17,9 +17,9 @@ Cada decisión importante, con las alternativas que se descartaron y por qué.
 | 11 | **Intervalo de Wilson** | Intervalo normal (Wald) | Funciona bien con muestras chicas |
 | 12 | Reclamos 147 y Defensa del Consumidor **agregados** en la base | Cargar crudos | Los crudos superan 1 GB; el agregado alcanza para el mapa y las tendencias |
 | 13 | **pysentimiento** sigue siendo el modelo del tablero; el modelo de lenguaje de Groq queda como control | Reclasificar todo con Groq; mezclar modelos por período | Groq acierta más (79 % contra 71 %), pero su plan gratis es por cuenta (1.000 consultas y 200.000 tokens por día) y lo comparten otros proyectos: el histórico tardaría unos dos meses. Mezclar modelos haría parecer un cambio de opinión lo que es un cambio de herramienta |
+| 14 | Pendiente: probar un modelo de lenguaje local (GPU de 12 GB, Ollama) | — | Si supera a pysentimiento contra las mismas etiquetas, permitiría reclasificar el histórico gratis y sin cupos |
 | 15 | **Cerrar el proyecto con una sola fuente** (Bluesky) | Sumar Defensa del Consumidor, reclamos de gas (ENARGAS) o reclamos 147 | No hay dataset abierto actualizado de denuncias por empresa: las sanciones llegan a 2022 y el programa de hipervulnerables a 2023. Se priorizó terminar y comunicar bien lo hecho |
 | 16 | **Página de caso de estudio** en HTML estático (GitHub Pages) además del tablero | Solo el tablero de Grafana | El tablero muestra números pero no explica el método ni la validación; la página lo cuenta con ejemplos reales para quien no lee código |
-| 14 | Pendiente: probar un modelo de lenguaje local (GPU de 12 GB, Ollama) | — | Si supera a pysentimiento contra las mismas etiquetas, permitiría reclasificar el histórico gratis y sin cupos |
 
 ## Licencias a tener en cuenta
 - **pysentimiento**: la librería es de código abierto, pero sus modelos se entrenaron con
