@@ -1,6 +1,6 @@
 # opinion-publica-nlp — Termómetro de descontento
 
-> Fuente 1 de 3 (Bluesky) terminada. Próximas: Defensa del Consumidor y reclamos 147 de CABA, cada una con su tablero.
+> **[Caso de estudio: el proyecto explicado en 2 minutos](https://scheffan.github.io/opinion-publica-nlp/)** (español / English)
 
 De qué se queja la gente, dónde y con qué tono, a partir de fuentes públicas, legales y gratuitas.
 
@@ -22,13 +22,14 @@ Sirve, por ejemplo, para que un municipio vea qué servicios generan más enojo,
 
 **Stack:** Python · pandas · pysentimiento (NLP en castellano) · PostgreSQL (Neon) · SQL · GitHub Actions · Grafana
 
-## Fuentes
+## Fuente
 
 | Fuente | Qué aporta | Estado |
 |---|---|---|
 | Bluesky (API pública de búsqueda) | Texto libre: sentimiento, emociones y discurso de odio por tema | ✅ Recolección semanal desde ene-2025, análisis validado y [tablero](https://scheffan.grafana.net/public-dashboards/e2b286e8ee764c23b39a9b58cb62583c) |
-| Defensa del Consumidor (Nación) | Denuncias por empresa y rubro | Pendiente |
-| Reclamos 147 / BA Colaborativa (CABA) | Reclamos por comuna y tipo | Pendiente |
+
+El plan original sumaba reclamos formales (Defensa del Consumidor y reclamos 147 de CABA) para cruzarlos con el tono en redes.
+Los datos abiertos de denuncias por empresa estaban desactualizados (el último corte es de 2022–2023), así que quedaron fuera del alcance. Ver [Decisiones](docs/decisiones.md).
 
 ## Cómo funciona
 
@@ -44,6 +45,7 @@ y en cada push tests de código, tests de datos y una carga completa en un Postg
 
 | Documento | Contenido |
 |---|---|
+| [Caso de estudio](https://scheffan.github.io/opinion-publica-nlp/) | El proyecto explicado para no técnicos, con ejemplos y validación (código en [`site/`](site/)) |
 | [Arquitectura](docs/arquitectura.md) | Capas, flujo y automatización |
 | [ETL paso a paso](docs/etl.md) | Extracción, limpieza, análisis y carga |
 | [Modelo de datos](docs/modelo-de-datos.md) | Diagrama de tablas, diccionario de datos y vistas |
